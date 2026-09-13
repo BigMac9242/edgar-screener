@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The DuPont Plane</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+:root{
+  /* survey-map neutrals, biased green */
+  --paper:#EDF0EE;
+  --surface:#F7F9F7;
+  --surface-2:#E3E8E4;
+  --rule:#C8D2CB;
+  --rule-soft:#DBE2DD;
+  --ink:#131A17;
+  --ink-2:#3D4A43;
+  --ink-3:#68766D;
+  /* accent + reserved status */
+  --accent:#146356;
+  --accent-soft:#D3E3DE;
+  --contour:#A7B8AE;
+  --neg:#A3341F;
+  --neg-soft:#F0D9D3;
+  --warn:#8A6108;
+  --warn-soft:#EFE3C6;
+  --focus:#146356;
+
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1412;
+    --surface:#151D1A;
+    --surface-2:#1E2825;
+    --rule:#2C3A35;
+    --rule-soft:#222D29;
+    --ink:#E4EBE7;
+    --ink-2:#AFBEB7;
+    --ink-3:#7E8F87;
+    --accent:#4FB3A0;
+    --accent-soft:#1B3B36;
+    --contour:#3A4C46;
+    --neg:#E07A63;
+    --neg-soft:#3A211B;
+    --warn:#D6AC55;
+    --warn-soft:#372C14;
+    --focus:#4FB3A0;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1412;
+  --surface:#151D1A;
+  --surface-2:#1E2825;
+  --rule:#2C3A35;
+  --rule-soft:#222D29;
+  --ink:#E4EBE7;
+  --ink-2:#AFBEB7;
+  --ink-3:#7E8F87;
+  --accent:#4FB3A0;
+  --accent-soft:#1B3B36;
+  --contour:#3A4C46;
+  --neg:#E07A63;
+  --neg-soft:#3A211B;
+  --warn:#D6AC55;
+  --warn-soft:#372C14;
+  --focus:#4FB3A0;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:15px;
+  line-height:1.55;
+  margin:0;
+  padding-block:32px 64px;
+  padding-left:20px;
+  padding-right:20px;
+}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+
+/* ---------- header ---------- */
+.masthead{display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--rule);padding-bottom:20px}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);display:flex;flex-wrap:wrap;gap:6px 14px;
+}
+h1{
+  font-family:var(--sans);font-weight:700;font-size:clamp(29px,5.2vw,46px);
+  line-height:1.02;letter-spacing:-.025em;margin:0;text-wrap:balance;
+}
+.standfirst{font-size:16.5px;color:var(--ink-2);max-width:64ch;margin:0}
+.standfirst b{color:var(--ink);font-weight:600}
+.identity{
+  font-family:var(--mono);font-size:13.5px;color:var(--accent);
+  background:var(--accent-soft);border-left:3px solid var(--accent);
+  padding:9px 13px;align-self:flex-start;max-width:100%;overflow-x:auto;white-space:nowrap;
+}
+
+/* ---------- controls ---------- */
+.controls{
+  display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end;
+  background:var(--surface);border:1px solid var(--rule-soft);padding:14px 16px;
+}
+.ctl{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ctl label{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+input[type=search],select{
+  font-family:var(--mono);font-size:13px;color:var(--ink);
+  background:var(--paper);border:1px solid var(--rule);
+  padding:7px 9px;min-width:0;
+}
+input[type=search]{width:210px;max-width:100%}
+input[type=range]{width:170px;accent-color:var(--accent)}
+.rangeval{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.chk{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.chk input{accent-color:var(--accent);width:15px;height:15px}
+.count{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin-left:auto;align-self:center}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- chart ---------- */
+.plot{background:var(--surface);border:1px solid var(--rule-soft);padding:16px 16px 10px}
+.plot-head{display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline;margin-bottom:6px}
+.plot-title{font-family:var(--sans);font-weight:600;font-size:17px;letter-spacing:-.01em}
+.plot-note{font-size:13.5px;color:var(--ink-3)}
+.legend{display:flex;flex-wrap:wrap;gap:5px 16px;font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:8px}
+.legend span{display:flex;align-items:center;gap:6px}
+.key{width:9px;height:9px;border-radius:50%;flex:none}
+svg{display:block;width:100%;height:auto;max-width:100%;overflow:visible}
+.dot{cursor:pointer}
+.dot:hover circle,.dot:focus circle{stroke-width:2.5}
+
+#tip{
+  position:fixed;pointer-events:none;z-index:50;opacity:0;transition:opacity .1s;
+  background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11.5px;
+  line-height:1.65;padding:8px 10px;max-width:260px;
+}
+#tip b{font-size:12.5px;display:block;margin-bottom:3px;white-space:normal}
+#tip .r{display:flex;justify-content:space-between;gap:18px}
+
+/* ---------- detail ---------- */
+.detail{background:var(--surface);border:1px solid var(--rule-soft);border-top:3px solid var(--accent);padding:16px}
+.detail h2{font-family:var(--sans);font-size:19px;font-weight:700;margin:0 0 2px;letter-spacing:-.015em}
+.detail .sub{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.decomp{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px;font-family:var(--mono)}
+.term{display:flex;flex-direction:column;gap:2px;min-width:104px}
+.term .v{font-size:23px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.term .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.term .f{font-size:11px;color:var(--ink-3)}
+.op{font-size:21px;color:var(--ink-3);padding-bottom:12px}
+.term.out .v{color:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px 18px;margin-top:16px;padding-top:14px;border-top:1px solid var(--rule-soft)}
+.fact{display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:12.5px;border-bottom:1px dotted var(--rule);padding-bottom:4px}
+.fact span:first-child{color:var(--ink-3)}
+.fact span:last-child{font-variant-numeric:tabular-nums}
+
+/* ---------- table ---------- */
+.tablewrap{overflow:auto;max-height:min(640px,78vh);border:1px solid var(--rule-soft);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-family:var(--mono);font-size:12.5px}
+th{
+  position:sticky;top:0;background:var(--surface-2);color:var(--ink-2);
+  font-weight:500;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  text-align:right;padding:9px 11px;cursor:pointer;white-space:nowrap;
+  border-bottom:1px solid var(--rule);user-select:none;
+}
+th:first-child,td:first-child{text-align:left}
+th.on{color:var(--accent)}
+td{padding:7px 11px;text-align:right;border-bottom:1px solid var(--rule-soft);font-variant-numeric:tabular-nums;white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--accent-soft)}
+tbody tr.sel{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent)}
+.name{font-family:var(--serif);font-size:14px;white-space:normal;min-width:210px;line-height:1.3}
+.rank{color:var(--ink-3);width:44px}
+.neg{color:var(--neg)}
+.flag{
+  display:inline-block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+  padding:1px 5px;margin-left:5px;vertical-align:1px;white-space:nowrap;
+}
+.flag.thin{background:var(--warn-soft);color:var(--warn)}
+.flag.neq{background:var(--neg-soft);color:var(--neg)}
+.flag.unit{background:var(--neg-soft);color:var(--neg)}
+.flag.dupe{background:var(--surface-2);color:var(--ink-3)}
+
+/* ---------- prose ---------- */
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(268px,1fr));gap:22px 32px;border-top:1px solid var(--rule);padding-top:22px}
+.notes h3{font-family:var(--sans);font-size:14px;font-weight:600;margin:0 0 6px;letter-spacing:-.005em}
+.notes p{margin:0 0 9px;font-size:14.5px;color:var(--ink-2)}
+.notes code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 4px}
+footer{font-family:var(--mono);font-size:11px;color:var(--ink-3);letter-spacing:.05em;border-top:1px solid var(--rule);padding-top:14px}
+
+@media (max-width:560px){
+  .count{margin-left:0;width:100%}
+  input[type=search]{width:100%}
+  .ctl{flex:1 1 140px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>SEC EDGAR &middot; us-gaap XBRL</span>
+      <span>Fiscal year 2024</span>
+      <span id="meta-count">500 of 1,233 filers</span>
+      <span>Revenue &ge; $1bn</span>
+    </div>
+    <h1>The DuPont Plane</h1>
+    <p class="standfirst">Return on capital employed isn't one number, it's two multiplied together. A company earns it either by charging a lot per unit of sales, or by pushing a lot of sales through a small capital base &mdash; and <b>the two look identical in a ranking table</b>. Plotted on log axes, every company with the same ROCE lands on the same diagonal. Where it sits along that line is the whole story.</p>
+    <div class="identity">ROCE&nbsp; =&nbsp; operating margin&nbsp; &times;&nbsp; capital turnover&nbsp; =&nbsp; (EBIT &divide; revenue)&nbsp; &times;&nbsp; (revenue &divide; capital employed)</div>
+  </header>
+
+  <div class="controls">
+    <div class="ctl">
+      <label for="q">Search company</label>
+      <input type="search" id="q" placeholder="try Costco, or Visa" autocomplete="off">
+    </div>
+    <div class="ctl">
+      <label for="rev">Minimum revenue</label>
+      <input type="range" id="rev" min="0" max="11" step="1" value="0">
+    </div>
+    <div class="ctl">
+      <label for="sort">Rank by</label>
+      <select id="sort">
+        <option value="roce">Return on capital employed</option>
+        <option value="operating_margin">Operating margin</option>
+        <option value="capital_turnover">Capital turnover</option>
+        <option value="revenue">Revenue</option>
+        <option value="net_margin">Net margin</option>
+      </select>
+    </div>
+    <label class="chk"><input type="checkbox" id="hideflag"> Hide flagged rows</label>
+    <label class="chk"><input type="checkbox" id="hideloss"> Profitable only</label>
+    <span class="count" id="count"></span>
+  </div>
+
+  <section class="plot">
+    <div class="plot-head">
+      <span class="plot-title">Margin against capital turnover</span>
+      <span class="plot-note">Both axes logarithmic &mdash; so the grey diagonals are lines of equal ROCE.</span>
+    </div>
+    <svg id="chart" viewBox="0 0 840 500" role="img" aria-label="Scatter plot of operating margin against capital turnover on logarithmic axes, with diagonal lines of equal return on capital employed"></svg>
+    <div class="legend">
+      <span><i class="key" style="background:var(--accent)"></i> clean reading</span>
+      <span><i class="key" style="background:var(--warn)"></i> thin capital base &mdash; ROCE overstated</span>
+      <span><i class="key" style="background:var(--neg)"></i> suspect figure in the filing</span>
+      <span style="color:var(--ink-3)">loss-makers and negative capital can't be plotted on log axes</span>
+    </div>
+  </section>
+
+  <section class="detail" id="detail" aria-live="polite"></section>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th style="cursor:default">#</th>
+        <th data-k="name" style="text-align:left">Company</th>
+        <th data-k="revenue">Revenue</th>
+        <th data-k="operating_margin">Op. margin</th>
+        <th data-k="capital_turnover">Cap. turnover</th>
+        <th data-k="roce">ROCE</th>
+        <th data-k="capital_employed">Cap. employed</th>
+        <th data-k="fy_end" style="text-align:left">FY end</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h3>What a high ROCE here does not mean</h3>
+      <p>Domino's Pizza tops the unfiltered ranking at roughly <b>706%</b>. That is arithmetic, not brilliance. Years of debt-funded buybacks left it with total assets of $1.74bn against current liabilities of $1.61bn, so capital employed collapses to about $125m and the denominator stops meaning anything. Equity is <i>minus</i> $3.96bn.</p>
+      <p>Any ratio with a small, unstable denominator will hand you a spectacular number. That's why rows whose capital employed is under a tenth of revenue carry a flag rather than a trophy.</p>
+    </div>
+    <div>
+      <h3>The data is dirtier than it looks</h3>
+      <p>Every figure here is lifted straight from XBRL tags in real filings, and filers tag things wrong. Some report in thousands where the unit says dollars. Some file twice under a parent and a subsidiary, so Charter and CCO Holdings appear as separate companies with identical numbers.</p>
+      <p>Fiscal years don't line up either &mdash; <code>CY2024</code> holds NVIDIA's year ending January 2025 alongside Apple's ending September 2024. Comparing them is comparing different economies.</p>
+    </div>
+    <div>
+      <h3>Reading the plane</h3>
+      <p>Move up and you're a company charging a premium: software, pharma, payment networks. Move right and you're a company sweating a small asset base: distributors, grocers, staffing firms.</p>
+      <p>Visa and Costco earn respectable returns from opposite corners. Neither strategy is better &mdash; but only one of them survives a recession by cutting price, and the ranking table can't tell you which.</p>
+    </div>
+  </section>
+
+  <footer>
+    Built 13 September 2026 &middot; source: SEC EDGAR XBRL frames API, <code>us-gaap</code> taxonomy &middot; 500-company sample of a 1,233-company universe &middot; regenerate the full set with <code>screener.py</code>
+  </footer>
+</div>
+
+<div id="tip" role="status"></div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var D = window.SCREENER, C = D.cols;
+  var ix = {}; C.forEach(function(c,i){ ix[c]=i; });
+
+  // ---- build records ------------------------------------------------------
+  var all = D.rows.map(function(r){
+    var rev=r[ix.revenue], ebit=r[ix.ebit], ni=r[ix.net_income],
+        a=r[ix.assets], cl=r[ix.current_liabilities], eq=r[ix.equity];
+    var ce = a - cl;
+    var o = {
+      name:r[ix.name], loc:r[ix.loc], fy_end:r[ix.fy_end],
+      revenue:rev, ebit:ebit, net_income:ni, assets:a,
+      current_liabilities:cl, equity:eq, capital_employed:ce,
+      operating_margin: ebit/rev,
+      capital_turnover: ce>0 ? rev/ce : null,
+      roce: ce>0 ? ebit/ce : null,
+      net_margin: ni==null ? null : ni/rev,
+      flags:[]
+    };
+    if(ce>0 && ce < rev*0.10) o.flags.push(["thin","thin capital"]);
+    if(eq!=null && eq<0)      o.flags.push(["neq","negative equity"]);
+    if(ni!=null && Math.abs(ni)<1e5 && rev>1e9) o.flags.push(["unit","unit error"]);
+    return o;
+  });
+
+  // duplicate filings: same revenue and same EBIT as another filer
+  var sig={};
+  all.forEach(function(o){ var k=o.revenue+"|"+o.ebit; (sig[k]=sig[k]||[]).push(o); });
+  Object.keys(sig).forEach(function(k){
+    if(sig[k].length>1) sig[k].forEach(function(o){ o.flags.push(["dupe","duplicate filing"]); });
+  });
+
+  var REV_STOPS=[0,1e9,2e9,3e9,5e9,7.5e9,1e10,1.5e10,2.5e10,5e10,1e11,2e11];
+  var state={q:"",minRev:0,sort:"roce",dir:-1,hideFlag:false,hideLoss:false,sel:null};
+
+  // ---- formatting ---------------------------------------------------------
+  function money(v){
+    if(v==null) return "—";
+    var s=v<0?"−":"", n=Math.abs(v);
+    if(n>=1e12) return s+"$"+(n/1e12).toFixed(2)+"tn";
+    if(n>=1e9)  return s+"$"+(n/1e9).toFixed(n>=1e10?0:1)+"bn";
+    if(n>=1e6)  return s+"$"+(n/1e6).toFixed(0)+"m";
+    return s+"$"+n.toLocaleString();
+  }
+  function pct(v,d){ return v==null?"—":(v*100).toFixed(d==null?1:d)+"%"; }
+  function mult(v){ return v==null?"—":v.toFixed(2)+"×"; }
+  function neg(v){ return v!=null&&v<0?" class=\"neg\"":""; }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  // ---- filter + sort ------------------------------------------------------
+  function view(){
+    var q=state.q.toLowerCase();
+    var rows=all.filter(function(o){
+      if(o.revenue<state.minRev) return false;
+      if(q && o.name.toLowerCase().indexOf(q)<0) return false;
+      if(state.hideFlag && o.flags.length) return false;
+      if(state.hideLoss && o.ebit<=0) return false;
+      return true;
+    });
+    var k=state.sort, d=state.dir;
+    rows.sort(function(x,y){
+      var a=x[k], b=y[k];
+      if(k==="name")   return d*a.localeCompare(b);
+      if(k==="fy_end") return d*(a<b?-1:a>b?1:0);
+      if(a==null) return 1;
+      if(b==null) return -1;
+      return d*(a-b);
+    });
+    return rows;
+  }
+
+  // ---- chart --------------------------------------------------------------
+  var svg=document.getElementById("chart"), tip=document.getElementById("tip");
+  var M={t:18,r:20,b:52,l:62}, W=840, H=500;
+  var PW=W-M.l-M.r, PH=H-M.t-M.b;
+  var XD=[0.06,45], YD=[0.004,0.85];              // turnover, margin
+  var lx=function(v){ return M.l + (Math.log10(v)-Math.log10(XD[0]))/(Math.log10(XD[1])-Math.log10(XD[0]))*PW; };
+  var ly=function(v){ return M.t + PH - (Math.log10(v)-Math.log10(YD[0]))/(Math.log10(YD[1])-Math.log10(YD[0]))*PH; };
+
+  function el(n,at,txt){
+    var e=document.createElementNS("http://www.w3.org/2000/svg",n);
+    for(var k in at) e.setAttribute(k,at[k]);
+    if(txt!=null) e.textContent=txt;
+    return e;
+  }
+
+  function drawChart(rows){
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var plotted=rows.filter(function(o){
+      return o.capital_turnover>0 && o.operating_margin>0 &&
+             o.capital_turnover>=XD[0] && o.capital_turnover<=XD[1] &&
+             o.operating_margin>=YD[0] && o.operating_margin<=YD[1];
+    });
+
+    // iso-ROCE diagonals: margin * turnover = k  ->  straight line in log-log
+    [0.02,0.05,0.10,0.20,0.50,1.00,2.00].forEach(function(k){
+      var pts=[];
+      [XD[0],XD[1]].forEach(function(x){
+        var y=k/x;
+        if(y>YD[1]){ y=YD[1]; x=k/y; }
+        if(y<YD[0]){ y=YD[0]; x=k/y; }
+        if(x>=XD[0]&&x<=XD[1]) pts.push([x,y]);
+      });
+      if(pts.length<2) return;
+      svg.appendChild(el("line",{x1:lx(pts[0][0]),y1:ly(pts[0][1]),x2:lx(pts[1][0]),y2:ly(pts[1][1]),
+        stroke:"var(--contour)","stroke-width":1,"stroke-dasharray":"3 4"}));
+      // label at the upper-left end of each diagonal, where the plane is empty
+      svg.appendChild(el("text",{x:lx(pts[0][0])+5,y:ly(pts[0][1])-5,"text-anchor":"start",
+        fill:"var(--ink-3)","font-family":"var(--mono)","font-size":"10.5"},
+        (k*100).toFixed(0)+"%"));
+    });
+
+    // axes
+    svg.appendChild(el("line",{x1:M.l,y1:M.t+PH,x2:M.l+PW,y2:M.t+PH,stroke:"var(--rule)","stroke-width":1}));
+    svg.appendChild(el("line",{x1:M.l,y1:M.t,x2:M.l,y2:M.t+PH,stroke:"var(--rule)","stroke-width":1}));
+
+    [0.1,0.25,0.5,1,2,5,10,25].forEach(function(v){
+      if(v<XD[0]||v>XD[1]) return;
+      svg.appendChild(el("line",{x1:lx(v),y1:M.t+PH,x2:lx(v),y2:M.t+PH+5,stroke:"var(--rule)"}));
+      svg.appendChild(el("text",{x:lx(v),y:M.t+PH+19,"text-anchor":"middle",fill:"var(--ink-3)",
+        "font-family":"var(--mono)","font-size":"11"},v+"×"));
+    });
+    [0.005,0.01,0.025,0.05,0.10,0.25,0.50].forEach(function(v){
+      if(v<YD[0]||v>YD[1]) return;
+      svg.appendChild(el("line",{x1:M.l-5,y1:ly(v),x2:M.l,y2:ly(v),stroke:"var(--rule)"}));
+      svg.appendChild(el("text",{x:M.l-9,y:ly(v)+4,"text-anchor":"end",fill:"var(--ink-3)",
+        "font-family":"var(--mono)","font-size":"11"},(v*100)+"%"));
+    });
+    svg.appendChild(el("text",{x:M.l+PW/2,y:H-10,"text-anchor":"middle",fill:"var(--ink-2)",
+      "font-family":"var(--mono)","font-size":"11.5","letter-spacing":"0.1em"},"CAPITAL TURNOVER →"));
+    svg.appendChild(el("text",{x:14,y:M.t+PH/2,"text-anchor":"middle",fill:"var(--ink-2)",
+      "font-family":"var(--mono)","font-size":"11.5","letter-spacing":"0.1em",
+      transform:"rotate(-90 14 "+(M.t+PH/2)+")"},"OPERATING MARGIN →"));
+
+    // marks
+    plotted.forEach(function(o){
+      var col = o.flags.some(function(f){return f[0]==="unit";}) ? "var(--neg)"
+              : o.flags.some(function(f){return f[0]==="thin";}) ? "var(--warn)"
+              : "var(--accent)";
+      var g=el("g",{class:"dot",tabindex:"0",role:"button",
+        "aria-label":o.name+", ROCE "+pct(o.roce)});
+      g.appendChild(el("circle",{cx:lx(o.capital_turnover),cy:ly(o.operating_margin),
+        r:o===state.sel?7:4, fill:col, "fill-opacity":o===state.sel?1:0.5,
+        stroke:o===state.sel?"var(--ink)":"var(--surface)","stroke-width":o===state.sel?2.5:1}));
+      g.addEventListener("mouseenter",function(e){ showTip(e,o); });
+      g.addEventListener("mousemove",function(e){ moveTip(e); });
+      g.addEventListener("mouseleave",hideTip);
+      g.addEventListener("focus",function(){ select(o); });
+      g.addEventListener("click",function(){ select(o); });
+      svg.appendChild(g);
+    });
+
+    var skipped=rows.length-plotted.length;
+    if(skipped>0){
+      svg.appendChild(el("text",{x:M.l+PW,y:M.t+12,"text-anchor":"end",fill:"var(--ink-3)",
+        "font-family":"var(--mono)","font-size":"11"},
+        skipped+" of "+rows.length+" not plottable"));
+    }
+  }
+
+  function showTip(e,o){
+    tip.innerHTML="<b>"+esc(o.name)+"</b>"+
+      "<div class='r'><span>margin</span><span>"+pct(o.operating_margin)+"</span></div>"+
+      "<div class='r'><span>turnover</span><span>"+mult(o.capital_turnover)+"</span></div>"+
+      "<div class='r'><span>ROCE</span><span>"+pct(o.roce)+"</span></div>"+
+      "<div class='r'><span>revenue</span><span>"+money(o.revenue)+"</span></div>"+
+      (o.flags.length?"<div class='r'><span>flag</span><span>"+o.flags.map(function(f){return f[1];}).join(", ")+"</span></div>":"");
+    tip.style.opacity=1; moveTip(e);
+  }
+  function moveTip(e){
+    var x=e.clientX+14, y=e.clientY+14;
+    if(x+270>window.innerWidth) x=e.clientX-270;
+    if(y+130>window.innerHeight) y=e.clientY-130;
+    tip.style.left=x+"px"; tip.style.top=y+"px";
+  }
+  function hideTip(){ tip.style.opacity=0; }
+
+  // ---- detail panel -------------------------------------------------------
+  function drawDetail(){
+    var o=state.sel, d=document.getElementById("detail");
+    if(!o){ d.innerHTML="<div class='sub'>Select a company</div><h2>Pick a point or a row</h2>"+
+      "<p style='margin:6px 0 0;color:var(--ink-2);max-width:60ch'>Its return on capital gets split into the two factors that produce it.</p>"; return; }
+    var f=o.flags.map(function(x){return "<span class='flag "+x[0]+"'>"+x[1]+"</span>";}).join("");
+    d.innerHTML=
+      "<div class='sub'>"+esc(o.loc||"")+" &middot; fiscal year to "+o.fy_end+"</div>"+
+      "<h2>"+esc(o.name)+f+"</h2>"+
+      "<div class='decomp'>"+
+        "<div class='term'><div class='v'>"+pct(o.operating_margin)+"</div>"+
+          "<div class='k'>Operating margin</div><div class='f'>"+money(o.ebit)+" ÷ "+money(o.revenue)+"</div></div>"+
+        "<div class='op'>×</div>"+
+        "<div class='term'><div class='v'>"+mult(o.capital_turnover)+"</div>"+
+          "<div class='k'>Capital turnover</div><div class='f'>"+money(o.revenue)+" ÷ "+money(o.capital_employed)+"</div></div>"+
+        "<div class='op'>=</div>"+
+        "<div class='term out'><div class='v'>"+pct(o.roce)+"</div>"+
+          "<div class='k'>ROCE</div><div class='f'>"+money(o.ebit)+" ÷ "+money(o.capital_employed)+"</div></div>"+
+      "</div>"+
+      "<div class='grid2'>"+
+        fact("Revenue",money(o.revenue))+
+        fact("Operating profit",money(o.ebit))+
+        fact("Net income",money(o.net_income))+
+        fact("Net margin",pct(o.net_margin))+
+        fact("Total assets",money(o.assets))+
+        fact("Current liabilities",money(o.current_liabilities))+
+        fact("Capital employed",money(o.capital_employed))+
+        fact("Shareholders' equity",money(o.equity))+
+      "</div>";
+  }
+  function fact(k,v){ return "<div class='fact'><span>"+k+"</span><span>"+v+"</span></div>"; }
+
+  // ---- table --------------------------------------------------------------
+  function drawTable(rows){
+    var h=[], n=Math.min(rows.length,500);
+    for(var i=0;i<n;i++){
+      var o=rows[i];
+      var f=o.flags.map(function(x){return "<span class='flag "+x[0]+"'>"+x[1]+"</span>";}).join("");
+      h.push("<tr data-i='"+i+"'"+(o===state.sel?" class='sel'":"")+">"+
+        "<td class='rank'>"+(i+1)+"</td>"+
+        "<td class='name'>"+esc(o.name)+f+"</td>"+
+        "<td>"+money(o.revenue)+"</td>"+
+        "<td"+neg(o.operating_margin)+">"+pct(o.operating_margin)+"</td>"+
+        "<td>"+mult(o.capital_turnover)+"</td>"+
+        "<td"+neg(o.roce)+">"+pct(o.roce)+"</td>"+
+        "<td>"+money(o.capital_employed)+"</td>"+
+        "<td style='text-align:left'>"+o.fy_end+"</td></tr>");
+    }
+    var tb=document.getElementById("tbody");
+    tb.innerHTML=h.join("");
+    tb.onclick=function(e){
+      var tr=e.target.closest("tr"); if(!tr) return;
+      select(rows[+tr.dataset.i]);
+    };
+    document.querySelectorAll("th[data-k]").forEach(function(th){
+      th.classList.toggle("on", th.dataset.k===state.sort);
+    });
+  }
+
+  function select(o){ state.sel=o; render();
+    var r=document.querySelector("tbody tr.sel");
+    if(r && r.scrollIntoView) r.scrollIntoView({block:"nearest"});
+  }
+
+  // ---- render -------------------------------------------------------------
+  function render(){
+    var rows=view();
+    document.getElementById("count").textContent=
+      rows.length+" companies"+(state.minRev?" · revenue ≥ "+money(state.minRev):"");
+    drawChart(rows); drawTable(rows); drawDetail();
+  }
+
+  // ---- wiring -------------------------------------------------------------
+  document.getElementById("q").addEventListener("input",function(e){ state.q=e.target.value; render(); });
+  document.getElementById("rev").addEventListener("input",function(e){ state.minRev=REV_STOPS[+e.target.value]; render(); });
+  document.getElementById("sort").addEventListener("change",function(e){ state.sort=e.target.value; state.dir=-1; render(); });
+  document.getElementById("hideflag").addEventListener("change",function(e){ state.hideFlag=e.target.checked; render(); });
+  document.getElementById("hideloss").addEventListener("change",function(e){ state.hideLoss=e.target.checked; render(); });
+  document.querySelectorAll("th[data-k]").forEach(function(th){
+    th.addEventListener("click",function(){
+      var k=th.dataset.k;
+      if(state.sort===k) state.dir*=-1; else { state.sort=k; state.dir=(k==="name")?1:-1; }
+      document.getElementById("sort").value=
+        ["roce","operating_margin","capital_turnover","revenue","net_margin"].indexOf(k)>=0?k:"roce";
+      render();
+    });
+  });
+
+  document.getElementById("meta-count").textContent=
+    D.meta.included+" of "+D.meta.universe+" filers";
+
+  // open on the company that makes the point
+  state.sel = all.filter(function(o){ return /NVIDIA/i.test(o.name); })[0] || all[0];
+  render();
+})();
+</script>
+</body>
+</html>
